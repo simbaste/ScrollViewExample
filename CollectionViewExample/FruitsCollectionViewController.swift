@@ -17,12 +17,7 @@ struct Data {
 
 class FruitsCollectionViewController: UICollectionViewController, UITextFieldDelegate, UICollectionViewDelegateFlowLayout {
 
-    var datas = [
-        Data(section: "LES FRUITS SIMPLES", fruits: ["Gland", "Erable", "Pois", "Tomate", "Orange"]),
-        Data(section: "LES FRUITS MULTIPLES", fruits: ["Fraise", "Mure"]),
-        Data(section: "LES FRUITS COMPLEXES", fruits: ["Pomme", "Banane", "Melon", "Eglantine"]),
-        Data(section: "LES FRUITS COMPESES", fruits: ["Ananas", "Figue"])
-    ]
+    var datas = MData.fetchPhotos()
     
     fileprivate let sectionInsets = UIEdgeInsets(top: 5.0, left: 15.0, bottom: 5.0, right: 15.0)
     fileprivate let itemPerRow: CGFloat = 3
@@ -42,6 +37,15 @@ class FruitsCollectionViewController: UICollectionViewController, UITextFieldDel
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+    }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if let cell = sender as? UICollectionViewCell,
+        let indexPath = collectionView?.indexPath(for: cell),
+            let photoViewer = segue.destination as? PhotosViewer {
+            photoViewer.indexPath = indexPath
+            photoViewer.datas = self.datas
+        }
     }
 
     /*
@@ -64,9 +68,7 @@ class FruitsCollectionViewController: UICollectionViewController, UITextFieldDel
         activityIndicator.startAnimating()
         
         datas = datas.sorted { first, second in
-            return second.fruits.index(where: { fruit in
-                return fruit.range(of: textField.text!, options: .caseInsensitive) != nil
-            }) == nil
+            return first.section?.range(of: textField.text!, options: .caseInsensitive) != nil
         }
         
         activityIndicator.removeFromSuperview()
@@ -88,15 +90,14 @@ class FruitsCollectionViewController: UICollectionViewController, UITextFieldDel
 
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of items
-        return datas[section].fruits.count
+        return datas[section].photos.count
     }
 
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as! FruitCollectionViewCell
     
-        cell.backgroundColor = UIColor.white
-        cell.imageV.image = UIImage(named: datas[indexPath.section].fruits[indexPath.row])
-        cell.label.text = datas[indexPath.section].fruits[indexPath.row]
+        cell.imageV.image = datas[indexPath.section].photos[indexPath.row].image
+        cell.label.text = datas[indexPath.section].photos[indexPath.row].description
     
         return cell
     }
